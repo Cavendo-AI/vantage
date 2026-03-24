@@ -12,6 +12,7 @@
     "init-db": "ALLOW_SQLITE=true DB_DRIVER=sqlite node server/db/init.js"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "better-sqlite3": "^11.7.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",

@@ -23,13 +23,13 @@ npm install
 npm run dev
 
 # Generate an API key
-curl -X POST http://localhost:3002/api/auth/keys \
+curl -X POST http://localhost:3020/api/auth/keys \
   -H 'Content-Type: application/json' \
   -d '{"name": "my-key"}'
 # Save the returned key — it's only shown once
 
 # Capture your first signal
-curl -X POST http://localhost:3002/api/signals \
+curl -X POST http://localhost:3020/api/signals \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer vtg_YOUR_KEY_HERE' \
   -d '{
@@ -61,7 +61,7 @@ Add to your Claude Code MCP settings:
       "command": "node",
       "args": ["/path/to/signals/mcp-server/src/index.js"],
       "env": {
-        "VANTAGE_API_URL": "http://localhost:3002",
+        "VANTAGE_API_URL": "http://localhost:3020",
         "VANTAGE_API_KEY": "vtg_YOUR_KEY_HERE"
       }
     }

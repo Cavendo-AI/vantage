@@ -1,6 +1,6 @@
 # Vantage API Reference
 
-Base URL: `http://localhost:3002`
+Base URL: `http://localhost:3020`
 
 All endpoints except `/health` and `POST /api/auth/keys` require authentication via API key:
 

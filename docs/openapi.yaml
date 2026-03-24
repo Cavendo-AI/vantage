@@ -1,0 +1,935 @@
+openapi: 3.1.0
+info:
+  title: Vantage API
+  description: |
+    Market intelligence and signal monitoring platform.
+    Capture, organize, and analyze what key people are saying about the topics that matter to your business.
+  version: 0.1.0
+  contact:
+    name: Cavendo AI
+servers:
+  - url: http://localhost:3020
+    description: Local development
+  - url: https://vantage.yourdomain.com
+    description: Production (replace with your deployed URL)
+
+security:
+  - apiKey: []
+
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  version:
+                    type: string
+                    example: 0.1.0
+
+  /api/auth/keys:
+    post:
+      operationId: generateApiKey
+      summary: Generate a new API key
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Human-readable label
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                    enum: [read, write]
+                  default: [read, write]
+      responses:
+        "201":
+          description: API key generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiKeyResponse"
+    get:
+      operationId: listApiKeys
+      summary: List API keys (prefix only)
+      responses:
+        "200":
+          description: List of API keys
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /api/auth/keys/{id}:
+    delete:
+      operationId: revokeApiKey
+      summary: Revoke an API key
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Key revoked
+
+  /api/signals:
+    post:
+      operationId: createSignal
+      summary: Capture a new signal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSignal"
+      responses:
+        "201":
+          description: Signal created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    get:
+      operationId: listSignals
+      summary: List signals with filtering
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: sourceId
+          in: query
+          schema:
+            type: integer
+        - name: signalType
+          in: query
+          schema:
+            type: string
+            enum: [post, article, screenshot, quote, thread, comment, report, other]
+        - name: platform
+          in: query
+          schema:
+            type: string
+        - name: topic
+          in: query
+          schema:
+            type: string
+          description: Filter by topic name or slug
+        - name: importance
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, normal, low]
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: until
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Text search
+      responses:
+        "200":
+          description: Signals list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /api/signals/feed:
+    get:
+      operationId: signalFeed
+      summary: Latest signals feed with topics
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Signal feed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /api/signals/search:
+    get:
+      operationId: searchSignals
+      summary: Search signals by keyword
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /api/signals/{id}:
+    get:
+      operationId: getSignal
+      summary: Get signal with full relations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Signal detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    put:
+      operationId: updateSignal
+      summary: Update a signal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSignal"
+      responses:
+        "200":
+          description: Signal updated
+    delete:
+      operationId: deleteSignal
+      summary: Delete a signal and its images
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Signal deleted
+
+  /api/signals/{id}/images:
+    post:
+      operationId: uploadSignalImage
+      summary: Upload a screenshot/image to a signal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                caption:
+                  type: string
+      responses:
+        "201":
+          description: Image uploaded
+
+  /api/signals/bulk:
+    post:
+      operationId: bulkCreateSignals
+      summary: Capture up to 50 signals at once
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [signals]
+              properties:
+                signals:
+                  type: array
+                  maxItems: 50
+                  items:
+                    $ref: "#/components/schemas/CreateSignal"
+      responses:
+        "201":
+          description: Signals created
+
+  /api/sources:
+    post:
+      operationId: createSource
+      summary: Create a source (person/account)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSource"
+      responses:
+        "201":
+          description: Source created
+    get:
+      operationId: listSources
+      summary: List sources with signal counts
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Sources list
+
+  /api/sources/{id}:
+    get:
+      operationId: getSource
+      summary: Get source detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Source detail
+    put:
+      operationId: updateSource
+      summary: Update a source
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSource"
+      responses:
+        "200":
+          description: Source updated
+    delete:
+      operationId: deleteSource
+      summary: Delete a source
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Source deleted
+
+  /api/sources/{id}/signals:
+    get:
+      operationId: listSourceSignals
+      summary: List signals from a source
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Signals from source
+
+  /api/topics:
+    post:
+      operationId: createTopic
+      summary: Create a topic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTopic"
+      responses:
+        "201":
+          description: Topic created
+    get:
+      operationId: listTopics
+      summary: List topics with signal counts
+      responses:
+        "200":
+          description: Topics list
+
+  /api/topics/{id}:
+    get:
+      operationId: getTopic
+      summary: Get topic detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Topic detail
+    put:
+      operationId: updateTopic
+      summary: Update a topic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTopic"
+      responses:
+        "200":
+          description: Topic updated
+    delete:
+      operationId: deleteTopic
+      summary: Delete a topic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Topic deleted
+
+  /api/topics/{id}/signals:
+    get:
+      operationId: listTopicSignals
+      summary: List signals for a topic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Signals for topic
+
+  /api/collections:
+    post:
+      operationId: createCollection
+      summary: Create a collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCollection"
+      responses:
+        "201":
+          description: Collection created
+    get:
+      operationId: listCollections
+      summary: List collections with signal counts
+      responses:
+        "200":
+          description: Collections list
+
+  /api/collections/{id}:
+    get:
+      operationId: getCollection
+      summary: Get collection with signals
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Collection with signals
+    put:
+      operationId: updateCollection
+      summary: Update a collection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCollection"
+      responses:
+        "200":
+          description: Collection updated
+    delete:
+      operationId: deleteCollection
+      summary: Delete a collection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Collection deleted
+
+  /api/collections/{id}/signals:
+    post:
+      operationId: addSignalToCollection
+      summary: Add a signal to a collection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [signalId]
+              properties:
+                signalId:
+                  type: integer
+                notes:
+                  type: string
+      responses:
+        "201":
+          description: Signal added
+
+  /api/collections/{id}/signals/{signalId}:
+    delete:
+      operationId: removeSignalFromCollection
+      summary: Remove a signal from a collection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: signalId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Signal removed
+
+  /api/contexts:
+    post:
+      operationId: createContext
+      summary: Store a business strategy document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateContext"
+      responses:
+        "201":
+          description: Context created
+    get:
+      operationId: listContexts
+      summary: List active business contexts
+      responses:
+        "200":
+          description: Contexts list
+
+  /api/contexts/{id}:
+    get:
+      operationId: getContext
+      summary: Get business context
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Context detail
+    put:
+      operationId: updateContext
+      summary: Update business context
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateContext"
+      responses:
+        "200":
+          description: Context updated
+    delete:
+      operationId: deleteContext
+      summary: Delete business context
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Context deleted
+
+  /api/analyses:
+    post:
+      operationId: createAnalysis
+      summary: Save an analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAnalysis"
+      responses:
+        "201":
+          description: Analysis saved
+    get:
+      operationId: listAnalyses
+      summary: List all analyses
+      responses:
+        "200":
+          description: Analyses list
+
+  /api/analyses/{id}:
+    get:
+      operationId: getAnalysis
+      summary: Get analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Analysis detail
+    delete:
+      operationId: deleteAnalysis
+      summary: Delete analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Analysis deleted
+
+  /api/dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      summary: Intelligence dashboard summary
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [7d, 30d, 90d]
+            default: 7d
+      responses:
+        "200":
+          description: Dashboard summary
+
+  /api/dashboard/timeline:
+    get:
+      operationId: getDashboardTimeline
+      summary: Signal timeline for charting
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Timeline data
+
+components:
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      description: "Vantage API key (vtg_...)"
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+
+    ApiKeyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+            key:
+              type: string
+              description: "Full API key — only shown once"
+            prefix:
+              type: string
+            name:
+              type: string
+            scopes:
+              type: array
+              items:
+                type: string
+
+    CreateSignal:
+      type: object
+      required: [signalType, content]
+      properties:
+        signalType:
+          type: string
+          enum: [post, article, screenshot, quote, thread, comment, report, other]
+        content:
+          type: string
+        sourceId:
+          type: integer
+        platform:
+          type: string
+        title:
+          type: string
+        sourceUrl:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        sentiment:
+          type: string
+          enum: [positive, negative, neutral, mixed]
+        importance:
+          type: string
+          enum: [critical, high, normal, low]
+          default: normal
+        topics:
+          type: array
+          items:
+            type: string
+          description: "Topic names — auto-created if new"
+        rawData:
+          type: object
+        metadata:
+          type: object
+
+    UpdateSignal:
+      type: object
+      properties:
+        signalType:
+          type: string
+          enum: [post, article, screenshot, quote, thread, comment, report, other]
+        content:
+          type: string
+        sourceId:
+          type: integer
+        platform:
+          type: string
+        title:
+          type: string
+        sourceUrl:
+          type: string
+        publishedAt:
+          type: string
+        sentiment:
+          type: string
+          enum: [positive, negative, neutral, mixed]
+        importance:
+          type: string
+          enum: [critical, high, normal, low]
+        topics:
+          type: array
+          items:
+            type: string
+
+    CreateSource:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        organization:
+          type: string
+        credibility:
+          type: string
+          enum: [authority, practitioner, commentator, unknown]
+          default: unknown
+        platformHandles:
+          type: object
+          additionalProperties:
+            type: string
+          description: '{"x": "@handle", "linkedin": "url"}'
+        avatarUrl:
+          type: string
+          format: uri
+        notes:
+          type: string
+        metadata:
+          type: object
+
+    CreateTopic:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        color:
+          type: string
+          description: "Hex color, e.g. #FF5733"
+        parentId:
+          type: integer
+
+    CreateCollection:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        purpose:
+          type: string
+        metadata:
+          type: object
+
+    CreateContext:
+      type: object
+      required: [title, contextType, content]
+      properties:
+        title:
+          type: string
+        contextType:
+          type: string
+          enum: [strategy, roadmap, positioning, persona, competitor_profile, thesis, other]
+        content:
+          type: string
+          description: "Markdown content"
+        status:
+          type: string
+          enum: [active, archived, draft]
+          default: active
+        metadata:
+          type: object
+
+    CreateAnalysis:
+      type: object
+      required: [title, analysisType, content]
+      properties:
+        title:
+          type: string
+        analysisType:
+          type: string
+          enum: [validation, stress_test, trend, competitive, opportunity, risk, summary, custom]
+        content:
+          type: string
+          description: "Analysis in markdown"
+        methodology:
+          type: string
+        businessContextId:
+          type: integer
+        collectionId:
+          type: integer
+        signalIds:
+          type: array
+          items:
+            type: integer
+        model:
+          type: string
+        provider:
+          type: string
+        inputTokens:
+          type: integer
+        outputTokens:
+          type: integer
+        metadata:
+          type: object

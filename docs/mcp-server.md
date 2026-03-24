@@ -21,7 +21,7 @@ npm install
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `VANTAGE_API_KEY` | Yes | — | Your Vantage API key (`vtg_...`) |
-| `VANTAGE_API_URL` | No | `http://localhost:3002` | Vantage API base URL |
+| `VANTAGE_API_URL` | No | `http://localhost:3020` | Vantage API base URL |
 
 ### Claude Code Configuration
 
@@ -34,7 +34,7 @@ Add to your MCP settings (e.g. `~/.claude/settings.json` or project-level):
       "command": "node",
       "args": ["/absolute/path/to/signals/mcp-server/src/index.js"],
       "env": {
-        "VANTAGE_API_URL": "http://localhost:3002",
+        "VANTAGE_API_URL": "http://localhost:3020",
         "VANTAGE_API_KEY": "vtg_YOUR_KEY_HERE"
       }
     }

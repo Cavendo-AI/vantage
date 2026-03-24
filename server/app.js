@@ -19,6 +19,7 @@ import authRouter from './routes/auth.js';
 import * as response from './utils/response.js';
 import { initializeDatabase } from './db/init.js';
 import { securityHeaders, apiLimiter } from './middleware/security.js';
+import { mountMcp } from './mcp.js';
 import db from './db/adapter.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -62,6 +63,9 @@ export function createApp() {
   app.use('/api/dashboard', dashboardRouter);
   app.use('/api/auth', authRouter);
 
+  // MCP Streamable HTTP endpoint (remote MCP access)
+  mountMcp(app);
+
   // JSON parse error handler
   app.use((err, req, res, next) => {
     if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
@@ -85,7 +89,7 @@ export function createApp() {
   let server = null;
 
   async function start(bindOptions = {}) {
-    const port = bindOptions.port ?? (process.env.PORT || 3002);
+    const port = bindOptions.port ?? (process.env.PORT || 3020);
 
     await initializeDatabase(db);
 
@@ -99,6 +103,7 @@ export function createApp() {
 ║                                          ║
 ║   Server: http://localhost:${port}          ║
 ║   API:    http://localhost:${port}/api      ║
+║   MCP:    http://localhost:${port}/mcp      ║
 ║                                          ║
 ╚══════════════════════════════════════════╝
         `);
