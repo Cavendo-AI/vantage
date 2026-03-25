@@ -70,6 +70,9 @@ Takes about 2 minutes. No install required.
 npm install
 npm run dev
 
+# If 3020 is already in use, choose another port
+PORT=YOUR_PORT npm run dev
+
 # Generate your first API key
 curl -X POST http://localhost:3020/api/auth/keys \
   -H 'Content-Type: application/json' \
@@ -77,6 +80,7 @@ curl -X POST http://localhost:3020/api/auth/keys \
 ```
 
 The first API key can be created from localhost without auth. If you're bootstrapping a fresh remote deployment, set `VANTAGE_BOOTSTRAP_TOKEN` on the server and send the same value in the `X-Vantage-Bootstrap-Token` header on that first request.
+The API key is returned as `data.key` in the JSON response.
 
 Capture your first signal:
 
@@ -112,6 +116,8 @@ cd ..
 ```
 claude mcp add vantage --transport http "http://localhost:3020/mcp" --header "Authorization: Bearer vtg_YOUR_KEY"
 ```
+
+For manual testing, note that `/mcp` is a streamable HTTP endpoint. MCP clients handle the response format automatically, but ad hoc `curl` calls need to be prepared for stream-oriented responses rather than a simple JSON-only request/response flow.
 
 ### Claude Desktop
 
