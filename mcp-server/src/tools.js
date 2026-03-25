@@ -136,11 +136,11 @@ export function registerTools(server, client) {
   // get_signal
   server.tool(
     'get_signal',
-    'Get full details on a specific signal including source info, topics, and images.',
-    { signal_id: z.number().describe('Signal ID') },
+    'Get full details on a specific signal by its signal number (e.g. #42). Use the signal_number shown in feeds and searches, not internal IDs.',
+    { signal_id: z.number().describe('Signal number (e.g. 42 for signal #42)') },
     async ({ signal_id }) => {
       try {
-        const signal = await client.getSignal(signal_id);
+        const signal = await client.getSignalByNumber(signal_id);
         return { content: [{ type: 'text', text: formatSignal(signal) }] };
       } catch (err) {
         return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
@@ -332,7 +332,7 @@ export function registerTools(server, client) {
         }
         output += `## Market Signals (${signals.length} total)\n\n`;
         for (const s of signals) {
-          output += `### Signal #${s.id}`;
+          output += `### Signal #${s.signalNumber || s.id}`;
           if (s.sourceName) output += ` — ${s.sourceName}`;
           if (s.sourceOrganization) output += ` (${s.sourceOrganization})`;
           output += `\n- Type: ${s.signalType} | Platform: ${s.platform || 'N/A'} | Importance: ${s.importance}\n`;
@@ -426,7 +426,7 @@ export function registerTools(server, client) {
 // ============================================
 
 function formatSignal(s) {
-  let out = `# Signal #${s.id}\n\n`;
+  let out = `# Signal #${s.signalNumber || s.id}\n\n`;
   out += `**Type:** ${s.signalType} | **Platform:** ${s.platform || 'N/A'} | **Importance:** ${s.importance}\n`;
   if (s.title) out += `**Title:** ${s.title}\n`;
   if (s.sourceName) out += `**Source:** ${s.sourceName}`;
@@ -445,7 +445,7 @@ function formatSignal(s) {
 }
 
 function formatSignalBrief(s) {
-  let out = `**#${s.id}** [${s.signalType}/${s.platform || 'N/A'}] `;
+  let out = `**#${s.signalNumber || s.id}** [${s.signalType}/${s.platform || 'N/A'}] `;
   if (s.sourceName) out += `by ${s.sourceName} `;
   out += `(${s.importance})`;
   if (s.capturedAt) out += ` — ${s.capturedAt}`;

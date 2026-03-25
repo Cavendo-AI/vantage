@@ -35,6 +35,7 @@ export class VantageClient {
     return this.request('GET', `/api/signals?${params}`);
   }
   async getSignal(id) { return this.request('GET', `/api/signals/${id}`); }
+  async getSignalByNumber(num) { return this.request('GET', `/api/signals/number/${num}`); }
   async searchSignals(q, limit = 20) { return this.request('GET', `/api/signals/search?q=${encodeURIComponent(q)}&limit=${limit}`); }
   async getSignalFeed(limit = 20, since = null) {
     const params = new URLSearchParams({ limit });

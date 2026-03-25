@@ -176,6 +176,21 @@ router.get('/search', apiKeyAuth('read'), async (req, res) => {
   }
 });
 
+// GET /api/signals/number/:num — look up by signal number
+router.get('/number/:num', apiKeyAuth('read'), async (req, res) => {
+  try {
+    const num = parseInt(req.params.num);
+    if (isNaN(num) || num < 1) return response.badRequest(res, 'Invalid signal number');
+    const row = await db.one('SELECT id FROM signals WHERE signal_number = ?', [num]);
+    if (!row) return response.notFound(res, 'Signal');
+    const signal = await getSignalWithRelations(row.id);
+    response.success(res, signal);
+  } catch (err) {
+    console.error('Error getting signal by number:', err);
+    response.serverError(res, err.message);
+  }
+});
+
 // GET /api/signals/:id
 router.get('/:id', apiKeyAuth('read'), validateParams(idParamSchema), async (req, res) => {
   try {

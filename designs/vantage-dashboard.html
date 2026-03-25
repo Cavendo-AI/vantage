@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vantage Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #dc2626;
+  --red-dark: #b91c1c;
+  --red-bg: #fef2f2;
+  --teal: #0d9488;
+  --navy: #0f172a;
+  --s900: #0f172a;
+  --s700: #334155;
+  --s600: #475569;
+  --s500: #64748b;
+  --s400: #94a3b8;
+  --s300: #cbd5e1;
+  --s200: #e2e8f0;
+  --s100: #f1f5f9;
+  --s50: #f8fafc;
+  --white: #ffffff;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--s50);
+  color: var(--s900);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* NAV */
+.topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--s200);
+  padding: 14px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: var(--s900);
+}
+.topbar-logo {
+  width: 30px; height: 30px; background: var(--red);
+  border-radius: 7px; display: flex; align-items: center; justify-content: center;
+}
+.topbar-logo svg { width: 16px; height: 16px; stroke: white; stroke-width: 2; fill: none; }
+.topbar-wordmark { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; }
+.topbar-wordmark .bp { color: var(--red); font-weight: 800; }
+.topbar-wordmark .bs { color: var(--s300); margin: 0 4px; font-weight: 400; }
+.topbar-right {
+  display: flex; align-items: center; gap: 16px;
+  font-size: 13px; color: var(--s500);
+}
+.topbar-right .plan-badge {
+  background: var(--red-bg); color: var(--red);
+  font-size: 11px; font-weight: 700; padding: 3px 8px;
+  border-radius: 5px;
+}
+
+/* MAIN */
+.main {
+  max-width: 780px; margin: 0 auto; padding: 40px 24px;
+}
+
+/* HEADER ROW */
+.header-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 36px;
+}
+.header-text h1 {
+  font-size: 26px; font-weight: 700; margin-bottom: 6px;
+}
+.header-text p {
+  font-size: 15px; color: var(--s500); line-height: 1.5;
+}
+.header-text p strong { font-weight: 600; color: var(--s700); }
+.header-text .hint {
+  font-style: italic; color: var(--s400);
+}
+.stat-pills {
+  display: flex; gap: 10px; flex-shrink: 0;
+}
+.stat-pill {
+  background: var(--white); border: 1px solid var(--s200);
+  border-radius: 10px; padding: 10px 18px; text-align: center;
+  min-width: 90px;
+}
+.stat-pill .label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--s400); margin-bottom: 2px;
+}
+.stat-pill .value {
+  font-size: 22px; font-weight: 700; color: var(--s900);
+}
+
+/* CONNECT SECTION */
+.section-label {
+  font-size: 15px; font-weight: 700; color: var(--s900); margin-bottom: 4px;
+}
+.section-sub {
+  font-size: 13px; color: var(--s400); margin-bottom: 14px;
+}
+.connect-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  margin-bottom: 32px;
+}
+.connect-card {
+  background: var(--white); border: 1px solid var(--s200);
+  border-radius: 12px; padding: 22px 20px;
+  transition: border-color 0.15s;
+}
+.connect-card:hover { border-color: var(--s300); }
+.connect-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+.connect-card .cc-sub {
+  font-size: 12px; color: var(--s400); margin-bottom: 16px;
+}
+.btn-connect {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 20px; border-radius: 8px;
+  font-size: 14px; font-weight: 600; font-family: 'Outfit', sans-serif;
+  border: none; cursor: pointer; color: white;
+  transition: filter 0.15s;
+}
+.btn-connect:hover { filter: brightness(0.9); }
+.btn-connect.claude { background: var(--red); }
+.btn-connect.chatgpt { background: var(--teal); }
+.connect-card .cc-note {
+  font-size: 11px; color: var(--s400); margin-top: 10px;
+}
+.cc-note a { color: var(--red); text-decoration: none; }
+
+/* PROMPT PILLS */
+.prompts-box {
+  background: var(--white); border: 1px solid var(--s200);
+  border-radius: 12px; padding: 18px 20px;
+  margin-bottom: 32px;
+}
+.prompts-box .pb-label {
+  font-size: 13px; font-weight: 600; color: var(--s500);
+  margin-bottom: 10px;
+}
+.prompt-pills {
+  display: flex; flex-wrap: wrap; gap: 7px;
+}
+.prompt-pill {
+  font-size: 12px; color: var(--s500); font-style: italic;
+  background: var(--s50); border: 1px solid var(--s200);
+  padding: 6px 13px; border-radius: 100px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.prompt-pill:hover { border-color: var(--s300); color: var(--s700); }
+
+/* ACCORDION SECTIONS */
+.accordion {
+  border-top: 1px solid var(--s200);
+  margin-bottom: 0;
+}
+.accordion summary {
+  list-style: none; cursor: pointer;
+  padding: 16px 0; display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 600; color: var(--s500);
+  transition: color 0.15s;
+}
+.accordion summary:hover { color: var(--s700); }
+.accordion summary::before {
+  content: '▸'; font-size: 11px; color: var(--s400);
+  transition: transform 0.2s;
+}
+.accordion[open] summary::before { transform: rotate(90deg); }
+.accordion summary::-webkit-details-marker { display: none; }
+.accordion-body { padding: 0 0 20px; }
+
+.key-row {
+  background: var(--s50); border-radius: 8px;
+  padding: 12px 16px; margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.key-info .key-name { font-size: 13px; font-weight: 600; }
+.key-info .key-meta {
+  font-size: 11px; color: var(--s400); margin-left: 8px;
+}
+.key-info .key-val {
+  font-size: 12px; color: var(--s400); margin-top: 3px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.key-action {
+  font-size: 12px; color: var(--s400); cursor: pointer;
+  transition: color 0.15s; background: none; border: none;
+  font-family: 'Outfit', sans-serif;
+}
+.key-action:hover { color: var(--red); }
+
+.endpoint-row {
+  background: var(--s50); border-radius: 8px; padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.endpoint-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--s400); margin-bottom: 3px;
+}
+.endpoint-val {
+  font-size: 13px; font-family: 'JetBrains Mono', monospace;
+}
+
+.code-block {
+  background: var(--s50); border-radius: 8px; padding: 14px 16px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--s600); line-height: 1.7; word-break: break-all;
+  margin-bottom: 10px;
+}
+.copy-btn {
+  font-size: 12px; color: var(--s400); background: var(--white);
+  border: 1px solid var(--s200); border-radius: 6px;
+  padding: 5px 12px; cursor: pointer; font-family: 'Outfit', sans-serif;
+  transition: border-color 0.15s;
+}
+.copy-btn:hover { border-color: var(--s400); }
+
+.tab-row {
+  display: flex; gap: 0; margin-bottom: 12px;
+}
+.tab-btn {
+  flex: 1; text-align: center; padding: 10px; font-size: 13px;
+  font-weight: 600; font-family: 'Outfit', sans-serif;
+  border: 1px solid var(--s200); background: var(--s50);
+  cursor: pointer; color: var(--s500);
+  transition: background 0.15s, color 0.15s;
+}
+.tab-btn:first-child { border-radius: 8px 0 0 8px; }
+.tab-btn:last-child { border-radius: 0 8px 8px 0; }
+.tab-btn.active {
+  background: var(--white); color: var(--red);
+  border-bottom-color: var(--red);
+}
+.tab-note { font-size: 12px; color: var(--s400); margin-bottom: 10px; }
+
+/* FOOTER ROW */
+.footer-row {
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--s200); padding-top: 20px; margin-top: 8px;
+}
+.footer-row .meta { font-size: 12px; color: var(--s400); }
+.btn-share {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; font-family: 'Outfit', sans-serif;
+  border: 1px solid var(--s200); background: var(--white);
+  color: var(--s600); cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-share:hover { border-color: var(--red); color: var(--red); }
+
+/* ANIMATIONS */
+.connect-grid, .prompts-box, .accordion, .footer-row {
+  animation: fadeUp 0.4s ease both;
+}
+.connect-grid { animation-delay: 0.05s; }
+.prompts-box { animation-delay: 0.1s; }
+.accordion:nth-of-type(1) { animation-delay: 0.15s; }
+.accordion:nth-of-type(2) { animation-delay: 0.2s; }
+.footer-row { animation-delay: 0.25s; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .header-row { flex-direction: column; gap: 16px; }
+  .connect-grid { grid-template-columns: 1fr; }
+  .main { padding: 24px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="topbar-brand">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+    <div class="topbar-wordmark"><span class="bp">CAVENDO AI</span><span class="bs">|</span>Vantage</div>
+  </a>
+  <div class="topbar-right">
+    <span>me@jarehart.com</span>
+    <span class="plan-badge">Pro</span>
+    <span style="cursor: pointer;">Sign out</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- HEADER -->
+  <div class="header-row">
+    <div class="header-text">
+      <h1>You're ready.</h1>
+      <p>Click <strong>Add to Claude</strong> or <strong>Add to ChatGPT</strong> below.<br>Then try: <span class="hint">"Save this as a signal"</span></p>
+    </div>
+    <div class="stat-pills">
+      <div class="stat-pill">
+        <div class="label">Signals</div>
+        <div class="value">73</div>
+      </div>
+      <div class="stat-pill">
+        <div class="label">Queries today</div>
+        <div class="value">33</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECT -->
+  <div class="section-label">Connect your AI</div>
+  <div class="section-sub">Sign in once. Works across all your devices.</div>
+  <div class="connect-grid">
+    <div class="connect-card">
+      <h3>Claude</h3>
+      <div class="cc-sub">Web, mobile, and desktop</div>
+      <button class="btn-connect claude">Add to Claude →</button>
+      <div class="cc-note">Paste <a href="#">MCP URL</a> if not pre-filled</div>
+    </div>
+    <div class="connect-card">
+      <h3>ChatGPT</h3>
+      <div class="cc-sub">One-click install via GPT Store</div>
+      <button class="btn-connect chatgpt">Add to ChatGPT →</button>
+      <div class="cc-note">Sign in with your Vantage email when prompted</div>
+    </div>
+  </div>
+
+  <!-- PROMPT PILLS -->
+  <div class="prompts-box">
+    <div class="pb-label">What you can say</div>
+    <div class="prompt-pills">
+      <span class="prompt-pill">"Save this: [anything you just saw]"</span>
+      <span class="prompt-pill">"What have I saved about pricing?"</span>
+      <span class="prompt-pill">"Show me signals from Lemkin"</span>
+      <span class="prompt-pill">"How does this compare to our positioning?"</span>
+    </div>
+  </div>
+
+  <!-- API KEYS (collapsed) -->
+  <details class="accordion">
+    <summary>API keys and MCP endpoint</summary>
+    <div class="accordion-body">
+      <div class="key-row">
+        <div class="key-info">
+          <div><span class="key-name">Claude Desktop</span><span class="key-meta">Last used 23m ago</span></div>
+          <div class="key-val">vtg_43d04238040...</div>
+        </div>
+        <button class="key-action">Revoke</button>
+      </div>
+      <div class="key-row">
+        <div class="key-info">
+          <div><span class="key-name">Default</span><span class="key-meta">Never used</span></div>
+          <div class="key-val">vtg_e4f5827c9db...</div>
+        </div>
+        <button class="key-action">Revoke</button>
+      </div>
+      <div style="text-align: right; margin-bottom: 12px;">
+        <button class="key-action" style="color: var(--red); font-weight: 600;">+ New Key</button>
+      </div>
+      <div class="endpoint-row">
+        <div>
+          <div class="endpoint-label">MCP endpoint</div>
+          <div class="endpoint-val">https://vantage.cavendo.ai/mcp</div>
+        </div>
+        <button class="key-action">Copy</button>
+      </div>
+    </div>
+  </details>
+
+  <!-- OTHER PLATFORMS (collapsed) -->
+  <details class="accordion">
+    <summary>Other platforms (Claude Code, Cursor)</summary>
+    <div class="accordion-body">
+      <div class="section-sub" style="margin-top: 0;">Your API key is included. Just paste and go.</div>
+      <div class="tab-row">
+        <button class="tab-btn active">Claude Code</button>
+        <button class="tab-btn">Cursor</button>
+      </div>
+      <div class="tab-note">Paste this into Claude Code:</div>
+      <div class="code-block">
+        claude mcp add vantage --transport http "https://vantage.cavendo.ai/mcp" --header "Authorization: Bearer vtg_43d04238040..."
+      </div>
+      <button class="copy-btn">Copy command</button>
+    </div>
+  </details>
+
+  <!-- FOOTER -->
+  <div class="footer-row">
+    <div class="meta">Last activity: 59 minutes ago · Signals saved: 73</div>
+    <button class="btn-share" onclick="window.open('https://vantage.cavendo.ai/share/josh', '_blank')">Share what you're tracking →</button>
+  </div>
+
+</div>
+
+</body>
+</html>
