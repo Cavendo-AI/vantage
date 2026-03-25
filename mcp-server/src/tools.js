@@ -22,7 +22,7 @@ export function registerTools(server, client) {
       source_org: z.string().optional().describe('Company or organization of the source'),
       source_handle: z.string().optional().describe('Platform username (e.g. @jasonlk for X, /in/name for LinkedIn). Required — always include if known or visible.'),
       published_at: z.string().optional().describe('When the original was published (ISO datetime). Required — always extract the post/publish date if visible.'),
-      topics: z.array(z.string()).optional().describe('Topic tags for this signal'),
+      topics: z.array(z.string()).optional().describe('Topic tags. IMPORTANT: Reuse existing topics whenever possible — check list_topics first. Only create a new topic if the signal truly does not fit any existing one. Prefer broad categories (e.g. "AI Agents", "AI Adoption") over narrow ones (e.g. "Agent Management", "Vibe Coding"). Use 2-4 tags max per signal.'),
       importance: z.enum(['critical', 'high', 'normal', 'low']).default('normal').describe('Importance level'),
       sentiment: z.enum(['positive', 'negative', 'neutral', 'mixed']).optional().describe('Sentiment of the signal')
     },
