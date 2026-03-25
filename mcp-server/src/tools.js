@@ -10,23 +10,38 @@ export function registerTools(server, client) {
   // capture_signal
   server.tool(
     'capture_signal',
-    'Capture a market signal — a post, article, quote, screenshot, or discussion from someone about a topic. Auto-creates the source if source_name is provided but not yet tracked.',
+    'Capture a market signal — a post, article, quote, screenshot, or discussion. IMPORTANT: Always include source_name, source_handle, source_url, platform, and published_at when known. These are critical for proper attribution and tracking.',
     {
       content: z.string().describe('The text content of the signal'),
       signal_type: z.enum(['post', 'article', 'screenshot', 'quote', 'thread', 'comment', 'report', 'other']).default('post').describe('Type of signal'),
-      platform: z.string().optional().describe('Platform: x, linkedin, web, reddit, hackernews, etc.'),
-      title: z.string().optional().describe('Optional headline or summary'),
-      source_url: z.string().optional().describe('Link to the original'),
-      source_name: z.string().optional().describe('Name of the person/account who posted this'),
+      platform: z.string().optional().describe('Platform where it was found: x, linkedin, web, reddit, hackernews, etc. Required.'),
+      title: z.string().optional().describe('Headline or summary of the signal'),
+      source_url: z.string().optional().describe('Direct link to the original post/article. Required — always include the URL if available.'),
+      source_name: z.string().optional().describe('Full name of the person who posted this. Required.'),
       source_bio: z.string().optional().describe('Bio/role of the source (used when auto-creating)'),
-      source_org: z.string().optional().describe('Organization of the source'),
-      published_at: z.string().optional().describe('When the original was published (ISO datetime)'),
+      source_org: z.string().optional().describe('Company or organization of the source'),
+      source_handle: z.string().optional().describe('Platform username (e.g. @jasonlk for X, /in/name for LinkedIn). Required — always include if known or visible.'),
+      published_at: z.string().optional().describe('When the original was published (ISO datetime). Required — always extract the post/publish date if visible.'),
       topics: z.array(z.string()).optional().describe('Topic tags for this signal'),
       importance: z.enum(['critical', 'high', 'normal', 'low']).default('normal').describe('Importance level'),
       sentiment: z.enum(['positive', 'negative', 'neutral', 'mixed']).optional().describe('Sentiment of the signal')
     },
-    async ({ content, signal_type, platform, title, source_url, source_name, source_bio, source_org, published_at, topics, importance, sentiment }) => {
+    async ({ content, signal_type, platform, title, source_url, source_name, source_bio, source_org, source_handle, published_at, topics, importance, sentiment }) => {
       try {
+        // Auto-extract handle from source_url if not provided
+        if (!source_handle && source_url) {
+          const xMatch = source_url.match(/(?:x\.com|twitter\.com)\/([a-zA-Z0-9_]+)/);
+          if (xMatch && !['search', 'hashtag', 'i', 'home'].includes(xMatch[1])) {
+            source_handle = '@' + xMatch[1];
+            if (!platform) platform = 'x';
+          }
+          const liMatch = source_url.match(/linkedin\.com\/in\/([a-zA-Z0-9_-]+)/);
+          if (liMatch) {
+            source_handle = liMatch[1];
+            if (!platform) platform = 'linkedin';
+          }
+        }
+
         let sourceId = null;
         if (source_name) {
           const sources = await client.listSources(200);
@@ -35,11 +50,21 @@ export function registerTools(server, client) {
           );
           if (existing) {
             sourceId = existing.id;
+            // Update handle if provided and not already set
+            if (source_handle && platform) {
+              const handles = existing.platformHandles ? (typeof existing.platformHandles === 'string' ? JSON.parse(existing.platformHandles) : existing.platformHandles) : {};
+              if (!handles[platform]) {
+                handles[platform] = source_handle;
+                await client.updateSource(existing.id, { platformHandles: handles });
+              }
+            }
           } else {
+            const platformHandles = source_handle && platform ? { [platform]: source_handle } : null;
             const newSource = await client.createSource({
               name: source_name,
               bio: source_bio || null,
-              organization: source_org || null
+              organization: source_org || null,
+              platformHandles
             });
             sourceId = newSource.id;
           }

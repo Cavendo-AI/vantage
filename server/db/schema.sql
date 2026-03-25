@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS signals (
     importance TEXT DEFAULT 'normal' CHECK (importance IN ('critical', 'high', 'normal', 'low')),
     raw_data TEXT,
     metadata TEXT,
+    signal_number INTEGER,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
 );

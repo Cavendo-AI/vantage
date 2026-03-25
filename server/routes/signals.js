@@ -20,14 +20,19 @@ router.post('/', apiKeyAuth('write'), validateBody(createSignalSchema), async (r
       publishedAt, sentiment, importance, rawData, metadata, topics
     } = req.body;
 
+    // Get next signal number
+    const maxNum = await db.one('SELECT COALESCE(MAX(signal_number), 0) as max_num FROM signals');
+    const signalNumber = (maxNum?.max_num || 0) + 1;
+
     const result = await db.insert(
       `INSERT INTO signals (source_id, signal_type, platform, title, content, source_url,
-         published_at, sentiment, importance, raw_data, metadata)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         published_at, sentiment, importance, raw_data, metadata, signal_number)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [sourceId, signalType, platform, title, content, sourceUrl,
        publishedAt, sentiment, importance,
        rawData ? JSON.stringify(rawData) : null,
-       metadata ? JSON.stringify(metadata) : null]
+       metadata ? JSON.stringify(metadata) : null,
+       signalNumber]
     );
 
     const signalId = result.lastInsertRowid;
