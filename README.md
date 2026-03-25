@@ -19,7 +19,7 @@ Your AI tools don't share memory.
 
 Vantage fixes that.
 
-Save signals once, and access them everywhere — across Claude, ChatGPT, Cursor, and more.
+Save signals once, and access them anywhere you have an MCP-compatible client — across Claude, Cursor, and other supported tools.
 
 ---
 
@@ -60,7 +60,7 @@ Vantage is a simple way to keep track of what you're seeing — so your AI can a
 
 ### Option 1: Use the hosted version (fastest)
 
-Sign up at [vantage.cavendo.ai](https://vantage.cavendo.ai). Connect to Claude or ChatGPT. Start capturing.
+Sign up at [vantage.cavendo.ai](https://vantage.cavendo.ai). Connect to Claude or another supported client. Start capturing.
 
 Takes about 2 minutes. No install required.
 
@@ -75,6 +75,8 @@ curl -X POST http://localhost:3020/api/auth/keys \
   -H 'Content-Type: application/json' \
   -d '{"name": "my-key"}'
 ```
+
+The first API key can be created from localhost without auth. If you're bootstrapping a fresh remote deployment, set `VANTAGE_BOOTSTRAP_TOKEN` on the server and send the same value in the `X-Vantage-Bootstrap-Token` header on that first request.
 
 Capture your first signal:
 
@@ -96,6 +98,14 @@ curl -X POST http://localhost:3020/api/signals \
 ## MCP Server
 
 Vantage includes an MCP server with 13 tools for use with Claude, Claude Code, Cursor, or any MCP-compatible client.
+
+If you want to use the bundled stdio MCP server directly, install its dependencies too:
+
+```bash
+cd mcp-server
+npm install
+cd ..
+```
 
 ### Claude Code
 
@@ -144,7 +154,11 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ## REST API
 
-All requests require `Authorization: Bearer vtg_YOUR_KEY`.
+Most API requests require `Authorization: Bearer vtg_YOUR_KEY`.
+
+Exceptions:
+- `GET /health`
+- `POST /api/auth/keys` for first-key bootstrap from localhost, or from a remote client that supplies a valid `X-Vantage-Bootstrap-Token`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -184,6 +198,7 @@ All requests require `Authorization: Bearer vtg_YOUR_KEY`.
 | `NODE_ENV` | `development` | Environment |
 | `DATABASE_PATH` | `./data/vantage.db` | SQLite file path |
 | `CORS_ORIGIN` | `*` | CORS allowed origin |
+| `VANTAGE_BOOTSTRAP_TOKEN` | unset | Allows first API key creation from a non-localhost client when sent as `X-Vantage-Bootstrap-Token` |
 
 ---
 
