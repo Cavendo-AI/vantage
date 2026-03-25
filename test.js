@@ -35,6 +35,10 @@ try {
   const API_KEY = keyRes.data.key;
   console.log('2. API Key:', API_KEY ? 'PASS (' + keyRes.data.prefix + '...)' : 'FAIL');
 
+  // 2b. Second key requires auth
+  const secondNoAuth = await req('POST', '/api/auth/keys', { name: 'unauthorized-second-key' });
+  console.log('2b. Second key without auth blocked:', secondNoAuth.error?.code === 'UNAUTHORIZED' ? 'PASS' : 'FAIL');
+
   // 3. Create source
   const srcRes = await req('POST', '/api/sources', {
     name: 'Marc Andreessen',
@@ -58,6 +62,24 @@ try {
     topics: ['AI Agents', 'SaaS', 'Enterprise']
   }, API_KEY);
   console.log('4. Create signal:', sigRes.success ? 'PASS (id=' + sigRes.data.id + ')' : 'FAIL: ' + JSON.stringify(sigRes.error));
+
+  // 4b. Invalid signal URL rejected
+  const invalidUrlRes = await req('POST', '/api/signals', {
+    signalType: 'post',
+    content: 'Bad URL should be rejected',
+    sourceUrl: 'javascript:alert(1)',
+    publishedAt: '2026-03-24T10:00:00Z'
+  }, API_KEY);
+  console.log('4b. Invalid URL rejected:', invalidUrlRes.error?.code === 'VALIDATION_ERROR' ? 'PASS' : 'FAIL');
+
+  // 4c. Invalid signal datetime rejected
+  const invalidDateRes = await req('POST', '/api/signals', {
+    signalType: 'post',
+    content: 'Bad datetime should be rejected',
+    sourceUrl: 'https://example.com/post',
+    publishedAt: 'March 24, 2026'
+  }, API_KEY);
+  console.log('4c. Invalid datetime rejected:', invalidDateRes.error?.code === 'VALIDATION_ERROR' ? 'PASS' : 'FAIL');
 
   // 5. Get signal with relations
   const getRes = await req('GET', '/api/signals/' + sigRes.data.id, null, API_KEY);
@@ -90,6 +112,18 @@ try {
   }, API_KEY);
   console.log('10. Add to collection:', addRes.success ? 'PASS' : 'FAIL');
 
+  // 10b. Bulk validation rejects malformed payloads
+  const bulkInvalid = await req('POST', '/api/signals/bulk', {
+    signals: [{ content: 'Missing URL protocol', sourceUrl: 'ftp://example.com/file' }]
+  }, API_KEY);
+  console.log('10b. Bulk invalid payload rejected:', bulkInvalid.error?.code === 'VALIDATION_ERROR' ? 'PASS' : 'FAIL');
+
+  // 10c. Bulk insert works with validation defaults
+  const bulkValid = await req('POST', '/api/signals/bulk', {
+    signals: [{ content: 'Bulk captured signal', sourceUrl: 'https://example.com/bulk', publishedAt: '2026-03-24T10:00:00Z' }]
+  }, API_KEY);
+  console.log('10c. Bulk insert succeeds:', bulkValid.success && bulkValid.data.created === 1 ? 'PASS' : 'FAIL');
+
   // 11. Business context
   const ctxRes = await req('POST', '/api/contexts', {
     title: 'Cavendo AI Go-to-Market',
@@ -110,7 +144,7 @@ try {
 
   // 13. Dashboard
   const dashRes = await req('GET', '/api/dashboard/summary?period=30d', null, API_KEY);
-  console.log('13. Dashboard:', dashRes.success && dashRes.data.totalSignals === 1 ? 'PASS' : 'FAIL');
+  console.log('13. Dashboard:', dashRes.success && dashRes.data.totalSignals === 2 ? 'PASS' : 'FAIL');
 
   // 14. Sources list
   const srcList = await req('GET', '/api/sources', null, API_KEY);

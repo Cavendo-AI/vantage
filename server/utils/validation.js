@@ -1,5 +1,14 @@
 import { z } from 'zod';
 
+const httpUrlSchema = z.string()
+  .max(2000)
+  .url()
+  .refine(value => /^https?:\/\//i.test(value), {
+    message: 'Must be a valid http or https URL'
+  });
+
+const isoDateTimeSchema = z.string().datetime({ offset: true });
+
 // ============================================
 // Common Schemas
 // ============================================
@@ -51,13 +60,13 @@ export const createSignalSchema = z.object({
   platform: z.string().max(50).optional().nullable(),
   title: z.string().max(500).optional().nullable(),
   content: z.string().min(1, 'Content is required').max(100000),
-  sourceUrl: z.string().max(2000).optional().nullable(),
-  publishedAt: z.string().optional().nullable(),
+  sourceUrl: httpUrlSchema.optional().nullable(),
+  publishedAt: isoDateTimeSchema.optional().nullable(),
   sentiment: z.enum(['positive', 'negative', 'neutral', 'mixed']).optional().nullable(),
   importance: z.enum(['critical', 'high', 'normal', 'low']).optional().default('normal'),
   rawData: z.record(z.any()).optional().nullable(),
   metadata: z.record(z.any()).optional().nullable(),
-  topics: z.array(z.string()).optional()
+  topics: z.array(z.string().min(1).max(100)).max(50).optional()
 });
 
 export const updateSignalSchema = z.object({
@@ -66,15 +75,24 @@ export const updateSignalSchema = z.object({
   platform: z.string().max(50).optional().nullable(),
   title: z.string().max(500).optional().nullable(),
   content: z.string().min(1).max(100000).optional(),
-  sourceUrl: z.string().max(2000).optional().nullable(),
-  publishedAt: z.string().optional().nullable(),
+  sourceUrl: httpUrlSchema.optional().nullable(),
+  publishedAt: isoDateTimeSchema.optional().nullable(),
   sentiment: z.enum(['positive', 'negative', 'neutral', 'mixed']).optional().nullable(),
   importance: z.enum(['critical', 'high', 'normal', 'low']).optional(),
   rawData: z.record(z.any()).optional().nullable(),
   metadata: z.record(z.any()).optional().nullable(),
-  topics: z.array(z.string()).optional()
+  topics: z.array(z.string().min(1).max(100)).max(50).optional()
 }).refine(data => Object.keys(data).length > 0, {
   message: 'At least one field must be provided'
+});
+
+export const bulkSignalsSchema = z.object({
+  signals: z.array(
+    createSignalSchema.extend({
+      signalType: z.enum(['post', 'article', 'screenshot', 'quote', 'thread', 'comment', 'report', 'other']).optional().default('other'),
+      importance: z.enum(['critical', 'high', 'normal', 'low']).optional().default('normal')
+    })
+  ).min(1, 'signals array is required').max(50, 'Maximum 50 signals per request')
 });
 
 export const signalQuerySchema = z.object({

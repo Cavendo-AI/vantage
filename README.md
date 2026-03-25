@@ -91,12 +91,14 @@ npm install
 # Start the server (SQLite, development mode)
 npm run dev
 
-# Generate an API key
+# Generate an API key from the same machine
 curl -X POST http://localhost:3020/api/auth/keys \
   -H 'Content-Type: application/json' \
   -d '{"name": "my-key"}'
 # Save the returned key — it's only shown once
 ```
+
+If you need to bootstrap the first API key from a remote machine, set `VANTAGE_BOOTSTRAP_TOKEN` on the server and include it as `X-Vantage-Bootstrap-Token` on that first `POST /api/auth/keys` request.
 
 Capture your first signal:
 

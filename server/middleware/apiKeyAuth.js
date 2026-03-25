@@ -6,64 +6,66 @@ function hashKey(key) {
   return crypto.createHash('sha256').update(key).digest('hex');
 }
 
-/**
- * API key authentication middleware.
- * Expects: Authorization: Bearer vtg_...
- */
-export function apiKeyAuth(requiredScope = 'read') {
-  return async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return response.unauthorized(res, 'Missing or invalid Authorization header');
-    }
+async function lookupApiKey(adapter, key) {
+  const keyHash = hashKey(key);
+  return adapter.one(
+    'SELECT id, scopes, expires_at, revoked_at FROM api_keys WHERE key_hash = ?',
+    [keyHash]
+  );
+}
 
-    const key = authHeader.slice(7);
-    if (!key.startsWith('vtg_')) {
-      return response.unauthorized(res, 'Invalid API key format');
-    }
+export async function authenticateApiKeyHeader(authHeader, requiredScope = 'read', options = {}) {
+  const {
+    adapter = db,
+    touchLastUsed = false
+  } = options;
 
-    const keyHash = hashKey(key);
-    const row = await db.one(
-      'SELECT id, scopes, expires_at, revoked_at FROM api_keys WHERE key_hash = ?',
-      [keyHash]
-    );
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('Missing or invalid Authorization header');
+  }
 
-    if (!row) {
-      return response.unauthorized(res, 'Invalid API key');
-    }
+  const key = authHeader.slice(7);
+  if (!key.startsWith('vtg_')) {
+    throw new Error('Invalid API key format');
+  }
 
-    if (row.revoked_at) {
-      return response.unauthorized(res, 'API key has been revoked');
-    }
+  const row = await lookupApiKey(adapter, key);
 
-    if (row.expires_at && new Date(row.expires_at) < new Date()) {
-      return response.unauthorized(res, 'API key has expired');
-    }
+  if (!row) {
+    throw new Error('Invalid API key');
+  }
 
-    const scopes = JSON.parse(row.scopes || '[]');
-    if (!scopes.includes(requiredScope) && !scopes.includes('*')) {
-      return response.forbidden(res, `Insufficient scope. Required: ${requiredScope}`);
-    }
+  if (row.revoked_at) {
+    throw new Error('API key has been revoked');
+  }
 
-    // Update last used
-    await db.exec('UPDATE api_keys SET last_used_at = datetime(\'now\') WHERE id = ?', [row.id]);
+  if (row.expires_at && new Date(row.expires_at) < new Date()) {
+    throw new Error('API key has expired');
+  }
 
-    req.apiKeyId = row.id;
-    req.apiKeyScopes = scopes;
-    next();
+  const scopes = JSON.parse(row.scopes || '[]');
+  if (!scopes.includes(requiredScope) && !scopes.includes('*')) {
+    const err = new Error(`Insufficient scope. Required: ${requiredScope}`);
+    err.code = 'FORBIDDEN';
+    throw err;
+  }
+
+  if (touchLastUsed) {
+    await adapter.exec("UPDATE api_keys SET last_used_at = datetime('now') WHERE id = ?", [row.id]);
+  }
+
+  return {
+    id: row.id,
+    scopes
   };
 }
 
-/**
- * Generate a new API key.
- * Returns the raw key (only shown once) and stores the hash.
- */
-export async function generateApiKey(name, scopes = ['read', 'write']) {
+async function insertApiKey(adapter, name, scopes = ['read', 'write']) {
   const raw = 'vtg_' + crypto.randomBytes(32).toString('hex');
   const keyHash = hashKey(raw);
   const keyPrefix = raw.slice(0, 15);
 
-  const result = await db.insert(
+  const result = await adapter.insert(
     'INSERT INTO api_keys (key_hash, key_prefix, name, scopes) VALUES (?, ?, ?, ?)',
     [keyHash, keyPrefix, name, JSON.stringify(scopes)]
   );
@@ -75,4 +77,36 @@ export async function generateApiKey(name, scopes = ['read', 'write']) {
     name,
     scopes
   };
+}
+
+/**
+ * API key authentication middleware.
+ * Expects: Authorization: Bearer vtg_...
+ */
+export function apiKeyAuth(requiredScope = 'read') {
+  return async (req, res, next) => {
+    try {
+      const auth = await authenticateApiKeyHeader(req.headers.authorization, requiredScope, {
+        adapter: db,
+        touchLastUsed: true
+      });
+      req.apiKeyId = auth.id;
+      req.apiKeyScopes = auth.scopes;
+      next();
+    } catch (err) {
+      if (err.code === 'FORBIDDEN') {
+        return response.forbidden(res, err.message);
+      }
+      return response.unauthorized(res, err.message);
+    }
+  };
+}
+
+/**
+ * Generate a new API key.
+ * Returns the raw key (only shown once) and stores the hash.
+ */
+export async function generateApiKey(name, scopes = ['read', 'write'], options = {}) {
+  const adapter = options.adapter || db;
+  return insertApiKey(adapter, name, scopes);
 }

@@ -36,6 +36,7 @@ export function createApp() {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
   app.use('/api', apiLimiter);
+  app.use('/mcp', apiLimiter);
 
   // Request logging in development
   if (process.env.NODE_ENV !== 'production') {
@@ -68,6 +69,9 @@ export function createApp() {
 
   // JSON parse error handler
   app.use((err, req, res, next) => {
+    if (err?.code === 'LIMIT_FILE_SIZE') {
+      return response.badRequest(res, 'File too large');
+    }
     if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
       return response.badRequest(res, 'Invalid JSON body');
     }

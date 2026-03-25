@@ -38,7 +38,11 @@ No auth required.
 
 ### `POST /api/auth/keys`
 
-Generate a new API key. **No auth required** (first key bootstrap).
+Generate a new API key.
+
+- First key bootstrap is only allowed from localhost by default.
+- For remote bootstrap, set `VANTAGE_BOOTSTRAP_TOKEN` on the server and send the same value in `X-Vantage-Bootstrap-Token`.
+- Once any active key exists, creating additional keys requires an authenticated API key with `write` scope.
 
 ```json
 // Request
@@ -78,8 +82,8 @@ Capture a new signal. Requires `write` scope.
   "sourceId": 1,                  // Optional: link to existing source
   "platform": "x",               // Optional: x, linkedin, web, reddit, hackernews, etc.
   "title": "Optional headline",
-  "sourceUrl": "https://...",
-  "publishedAt": "2026-03-24T10:00:00Z",
+  "sourceUrl": "https://...",     // Must be http/https
+  "publishedAt": "2026-03-24T10:00:00Z", // ISO datetime with timezone
   "sentiment": "positive",       // positive, negative, neutral, mixed
   "importance": "high",          // critical, high, normal, low
   "topics": ["AI Agents", "SaaS"],  // Auto-creates topics if new
@@ -126,7 +130,7 @@ Delete a signal and its images. Requires `write` scope.
 ### `POST /api/signals/:id/images`
 
 Upload a screenshot/image. Requires `write` scope. Multipart form data:
-- `image` — file (PNG, JPEG, GIF, WebP, SVG; max 10MB)
+- `image` — file (PNG, JPEG, GIF, or WebP; max 10MB). File contents are validated server-side.
 - `caption` — optional text
 
 ### `DELETE /api/signals/:id/images/:imageId`

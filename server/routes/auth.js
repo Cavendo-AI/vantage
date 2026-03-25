@@ -3,35 +3,43 @@ import db from '../db/adapter.js';
 import * as response from '../utils/response.js';
 import { validateBody } from '../utils/validation.js';
 import { generateKeySchema } from '../utils/validation.js';
-import { apiKeyAuth, generateApiKey } from '../middleware/apiKeyAuth.js';
+import { apiKeyAuth, authenticateApiKeyHeader, generateApiKey } from '../middleware/apiKeyAuth.js';
 
 const router = Router();
+
+function isLoopbackIp(ip = '') {
+  return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+}
 
 // POST /api/auth/keys — generate new API key
 // First key can be created without auth (bootstrap). After that, requires an existing key.
 router.post('/keys', validateBody(generateKeySchema), async (req, res) => {
   try {
-    // Check if any keys exist — if so, require auth
-    const existing = await db.one('SELECT COUNT(*) as count FROM api_keys WHERE revoked_at IS NULL');
-    if (existing.count > 0) {
-      // Require auth for subsequent keys
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ') || !authHeader.slice(7).startsWith('vtg_')) {
-        return response.unauthorized(res, 'API key required to create additional keys');
-      }
-      // Validate the key
-      const crypto = (await import('crypto')).default;
-      const keyHash = crypto.createHash('sha256').update(authHeader.slice(7)).digest('hex');
-      const keyRow = await db.one('SELECT id, scopes FROM api_keys WHERE key_hash = ? AND revoked_at IS NULL', [keyHash]);
-      if (!keyRow) return response.unauthorized(res, 'Invalid API key');
-      const scopes = JSON.parse(keyRow.scopes || '[]');
-      if (!scopes.includes('write') && !scopes.includes('*')) {
-        return response.forbidden(res, 'Write scope required');
-      }
-    }
-
     const { name, scopes } = req.body;
-    const result = await generateApiKey(name, scopes);
+    const bootstrapToken = req.headers['x-vantage-bootstrap-token'];
+    const configuredBootstrapToken = process.env.VANTAGE_BOOTSTRAP_TOKEN;
+
+    const result = await db.tx(async tx => {
+      const existing = await tx.one('SELECT COUNT(*) as count FROM api_keys WHERE revoked_at IS NULL');
+
+      if (existing.count === 0) {
+        const remoteBootstrapAllowed = configuredBootstrapToken &&
+          typeof bootstrapToken === 'string' &&
+          bootstrapToken === configuredBootstrapToken;
+        if (!isLoopbackIp(req.ip) && !remoteBootstrapAllowed) {
+          const err = new Error(
+            'First API key creation is restricted to localhost. Set VANTAGE_BOOTSTRAP_TOKEN and send it in X-Vantage-Bootstrap-Token for remote bootstrap.'
+          );
+          err.code = 'FORBIDDEN';
+          throw err;
+        }
+      } else {
+        await authenticateApiKeyHeader(req.headers.authorization, 'write', { adapter: tx });
+      }
+
+      return generateApiKey(name, scopes, { adapter: tx });
+    });
+
     response.created(res, {
       id: result.id,
       key: result.key,
@@ -41,6 +49,18 @@ router.post('/keys', validateBody(generateKeySchema), async (req, res) => {
       note: 'Save this key — it will not be shown again.'
     });
   } catch (err) {
+    if (err.code === 'FORBIDDEN') {
+      return response.forbidden(res, err.message);
+    }
+    if (
+      err.message === 'Missing or invalid Authorization header' ||
+      err.message === 'Invalid API key format' ||
+      err.message === 'Invalid API key' ||
+      err.message === 'API key has been revoked' ||
+      err.message === 'API key has expired'
+    ) {
+      return response.unauthorized(res, err.message);
+    }
     console.error('Error generating API key:', err);
     response.serverError(res, 'Internal server error');
   }

@@ -4,10 +4,10 @@ import { join } from 'path';
 import db from '../db/adapter.js';
 import * as response from '../utils/response.js';
 import { apiKeyAuth } from '../middleware/apiKeyAuth.js';
-import { upload, UPLOADS_DIR } from '../utils/images.js';
+import { upload, UPLOADS_DIR, persistImageUpload } from '../utils/images.js';
 import {
   validateBody, validateParams, validateQuery,
-  createSignalSchema, updateSignalSchema, signalQuerySchema, idParamSchema
+  createSignalSchema, updateSignalSchema, signalQuerySchema, idParamSchema, bulkSignalsSchema
 } from '../utils/validation.js';
 
 const router = Router();
@@ -285,15 +285,20 @@ router.post('/:id/images', apiKeyAuth('write'), validateParams(idParamSchema), u
 
     if (!req.file) return response.badRequest(res, 'No image file provided');
 
+    const stored = await persistImageUpload(req.file);
+
     const result = await db.insert(
       `INSERT INTO signal_images (signal_id, filename, file_path, mime_type, file_size, caption)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [req.params.id, req.file.originalname, req.file.filename, req.file.mimetype, req.file.size, req.body.caption || null]
+      [req.params.id, req.file.originalname, stored.filename, stored.mimeType, stored.size, req.body.caption || null]
     );
 
     const image = await db.one('SELECT * FROM signal_images WHERE id = ?', [result.lastInsertRowid]);
     response.created(res, image);
   } catch (err) {
+    if (err.code === 'INVALID_IMAGE' || err.code === 'LIMIT_FILE_SIZE') {
+      return response.badRequest(res, err.message);
+    }
     console.error('Error uploading image:', err);
     response.serverError(res, "Internal server error");
   }
@@ -318,29 +323,25 @@ router.delete('/:id/images/:imageId', apiKeyAuth('write'), async (req, res) => {
 });
 
 // POST /api/signals/bulk — bulk capture
-router.post('/bulk', apiKeyAuth('write'), async (req, res) => {
+router.post('/bulk', apiKeyAuth('write'), validateBody(bulkSignalsSchema), async (req, res) => {
   try {
     const { signals } = req.body;
-    if (!Array.isArray(signals) || signals.length === 0) {
-      return response.badRequest(res, 'signals array is required');
-    }
-    if (signals.length > 50) {
-      return response.badRequest(res, 'Maximum 50 signals per request');
-    }
-
-    const results = [];
-    for (const s of signals) {
-      const result = await db.insert(
-        `INSERT INTO signals (source_id, signal_type, platform, title, content, source_url,
-           published_at, sentiment, importance, raw_data, metadata)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [s.sourceId, s.signalType || 'other', s.platform, s.title, s.content, s.sourceUrl,
-         s.publishedAt, s.sentiment, s.importance || 'normal',
-         s.rawData ? JSON.stringify(s.rawData) : null,
-         s.metadata ? JSON.stringify(s.metadata) : null]
-      );
-      results.push(result.lastInsertRowid);
-    }
+    const results = await db.tx(async tx => {
+      const insertedIds = [];
+      for (const s of signals) {
+        const result = await tx.insert(
+          `INSERT INTO signals (source_id, signal_type, platform, title, content, source_url,
+             published_at, sentiment, importance, raw_data, metadata)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [s.sourceId, s.signalType, s.platform, s.title, s.content, s.sourceUrl,
+           s.publishedAt, s.sentiment, s.importance,
+           s.rawData ? JSON.stringify(s.rawData) : null,
+           s.metadata ? JSON.stringify(s.metadata) : null]
+        );
+        insertedIds.push(result.lastInsertRowid);
+      }
+      return insertedIds;
+    });
 
     response.created(res, { created: results.length, ids: results });
   } catch (err) {
