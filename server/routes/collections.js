@@ -21,7 +21,7 @@ router.post('/', apiKeyAuth('write'), validateBody(createCollectionSchema), asyn
     response.created(res, parseJson(collection));
   } catch (err) {
     console.error('Error creating collection:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -35,7 +35,7 @@ router.get('/', apiKeyAuth('read'), async (req, res) => {
     response.success(res, collections.map(parseJson));
   } catch (err) {
     console.error('Error listing collections:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -65,7 +65,7 @@ router.get('/:id', apiKeyAuth('read'), validateParams(idParamSchema), async (req
     });
   } catch (err) {
     console.error('Error getting collection:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -95,7 +95,7 @@ router.put('/:id', apiKeyAuth('write'), validateParams(idParamSchema), validateB
     response.success(res, parseJson(collection));
   } catch (err) {
     console.error('Error updating collection:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -107,7 +107,7 @@ router.delete('/:id', apiKeyAuth('write'), validateParams(idParamSchema), async 
     response.success(res, { deleted: true });
   } catch (err) {
     console.error('Error deleting collection:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -127,7 +127,7 @@ router.post('/:id/signals', apiKeyAuth('write'), validateParams(idParamSchema), 
     response.created(res, { added: true });
   } catch (err) {
     console.error('Error adding signal to collection:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -142,7 +142,7 @@ router.delete('/:id/signals/:signalId', apiKeyAuth('write'), async (req, res) =>
     response.success(res, { removed: true });
   } catch (err) {
     console.error('Error removing signal from collection:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 

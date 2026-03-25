@@ -25,7 +25,7 @@ router.post('/', apiKeyAuth('write'), validateBody(createSourceSchema), async (r
     response.created(res, parseSourceJson(source));
   } catch (err) {
     console.error('Error creating source:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -42,7 +42,7 @@ router.get('/', apiKeyAuth('read'), validateQuery(paginationSchema), async (req,
     response.success(res, { sources: sources.map(parseSourceJson), total: total.count });
   } catch (err) {
     console.error('Error listing sources:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -58,7 +58,7 @@ router.get('/:id', apiKeyAuth('read'), validateParams(idParamSchema), async (req
     response.success(res, parseSourceJson(source));
   } catch (err) {
     console.error('Error getting source:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -91,7 +91,7 @@ router.put('/:id', apiKeyAuth('write'), validateParams(idParamSchema), validateB
     response.success(res, parseSourceJson(source));
   } catch (err) {
     console.error('Error updating source:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -103,7 +103,7 @@ router.delete('/:id', apiKeyAuth('write'), validateParams(idParamSchema), async 
     response.success(res, { deleted: true });
   } catch (err) {
     console.error('Error deleting source:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -120,7 +120,7 @@ router.get('/:id/signals', apiKeyAuth('read'), validateParams(idParamSchema), as
     response.success(res, signals.map(parseSignalJson));
   } catch (err) {
     console.error('Error listing source signals:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 

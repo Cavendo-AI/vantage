@@ -21,7 +21,7 @@ router.post('/', apiKeyAuth('write'), validateBody(createContextSchema), async (
     response.created(res, parseJson(ctx));
   } catch (err) {
     console.error('Error creating context:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -35,7 +35,7 @@ router.get('/', apiKeyAuth('read'), async (req, res) => {
     response.success(res, contexts.map(parseJson));
   } catch (err) {
     console.error('Error listing contexts:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -47,7 +47,7 @@ router.get('/:id', apiKeyAuth('read'), validateParams(idParamSchema), async (req
     response.success(res, parseJson(ctx));
   } catch (err) {
     console.error('Error getting context:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -80,7 +80,7 @@ router.put('/:id', apiKeyAuth('write'), validateParams(idParamSchema), validateB
     response.success(res, parseJson(ctx));
   } catch (err) {
     console.error('Error updating context:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -92,7 +92,7 @@ router.delete('/:id', apiKeyAuth('write'), validateParams(idParamSchema), async 
     response.success(res, { deleted: true });
   } catch (err) {
     console.error('Error deleting context:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 

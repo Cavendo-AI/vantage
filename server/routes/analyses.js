@@ -31,7 +31,7 @@ router.post('/', apiKeyAuth('write'), validateBody(createAnalysisSchema), async 
     response.created(res, parseJson(analysis));
   } catch (err) {
     console.error('Error creating analysis:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -42,7 +42,7 @@ router.get('/', apiKeyAuth('read'), async (req, res) => {
     response.success(res, analyses.map(parseJson));
   } catch (err) {
     console.error('Error listing analyses:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -54,7 +54,7 @@ router.get('/:id', apiKeyAuth('read'), validateParams(idParamSchema), async (req
     response.success(res, parseJson(analysis));
   } catch (err) {
     console.error('Error getting analysis:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -66,7 +66,7 @@ router.delete('/:id', apiKeyAuth('write'), validateParams(idParamSchema), async 
     response.success(res, { deleted: true });
   } catch (err) {
     console.error('Error deleting analysis:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 

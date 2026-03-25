@@ -60,7 +60,7 @@ router.post('/', apiKeyAuth('write'), validateBody(createSignalSchema), async (r
     response.created(res, signal);
   } catch (err) {
     console.error('Error creating signal:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -109,7 +109,7 @@ router.get('/', apiKeyAuth('read'), validateQuery(signalQuerySchema), async (req
     });
   } catch (err) {
     console.error('Error listing signals:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -149,7 +149,7 @@ router.get('/feed', apiKeyAuth('read'), async (req, res) => {
     response.success(res, results);
   } catch (err) {
     console.error('Error getting feed:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -172,7 +172,7 @@ router.get('/search', apiKeyAuth('read'), async (req, res) => {
     response.success(res, signals.map(parseSignalJson));
   } catch (err) {
     console.error('Error searching signals:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -187,7 +187,7 @@ router.get('/number/:num', apiKeyAuth('read'), async (req, res) => {
     response.success(res, signal);
   } catch (err) {
     console.error('Error getting signal by number:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -199,7 +199,7 @@ router.get('/:id', apiKeyAuth('read'), validateParams(idParamSchema), async (req
     response.success(res, signal);
   } catch (err) {
     console.error('Error getting signal:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -255,7 +255,7 @@ router.put('/:id', apiKeyAuth('write'), validateParams(idParamSchema), validateB
     response.success(res, signal);
   } catch (err) {
     console.error('Error updating signal:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -273,7 +273,7 @@ router.delete('/:id', apiKeyAuth('write'), validateParams(idParamSchema), async 
     response.success(res, { deleted: true });
   } catch (err) {
     console.error('Error deleting signal:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -295,7 +295,7 @@ router.post('/:id/images', apiKeyAuth('write'), validateParams(idParamSchema), u
     response.created(res, image);
   } catch (err) {
     console.error('Error uploading image:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -313,7 +313,7 @@ router.delete('/:id/images/:imageId', apiKeyAuth('write'), async (req, res) => {
     response.success(res, { deleted: true });
   } catch (err) {
     console.error('Error deleting image:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -345,7 +345,7 @@ router.post('/bulk', apiKeyAuth('write'), async (req, res) => {
     response.created(res, { created: results.length, ids: results });
   } catch (err) {
     console.error('Error bulk creating signals:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 

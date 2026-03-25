@@ -68,7 +68,7 @@ router.get('/summary', apiKeyAuth('read'), async (req, res) => {
     });
   } catch (err) {
     console.error('Error getting dashboard summary:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -88,7 +88,7 @@ router.get('/timeline', apiKeyAuth('read'), async (req, res) => {
     response.success(res, timeline);
   } catch (err) {
     console.error('Error getting timeline:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 

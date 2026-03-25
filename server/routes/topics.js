@@ -26,7 +26,7 @@ router.post('/', apiKeyAuth('write'), validateBody(createTopicSchema), async (re
     response.created(res, topic);
   } catch (err) {
     console.error('Error creating topic:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -40,7 +40,7 @@ router.get('/', apiKeyAuth('read'), async (req, res) => {
     response.success(res, topics);
   } catch (err) {
     console.error('Error listing topics:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -56,7 +56,7 @@ router.get('/:id', apiKeyAuth('read'), validateParams(idParamSchema), async (req
     response.success(res, topic);
   } catch (err) {
     console.error('Error getting topic:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -89,7 +89,7 @@ router.put('/:id', apiKeyAuth('write'), validateParams(idParamSchema), validateB
     response.success(res, topic);
   } catch (err) {
     console.error('Error updating topic:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -101,7 +101,7 @@ router.delete('/:id', apiKeyAuth('write'), validateParams(idParamSchema), async 
     response.success(res, { deleted: true });
   } catch (err) {
     console.error('Error deleting topic:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
@@ -127,7 +127,7 @@ router.get('/:id/signals', apiKeyAuth('read'), validateParams(idParamSchema), as
     })));
   } catch (err) {
     console.error('Error listing topic signals:', err);
-    response.serverError(res, err.message);
+    response.serverError(res, "Internal server error");
   }
 });
 
