@@ -1,9 +1,21 @@
 {
-  "name": "@vantage/mcp-server",
+  "name": "@cavendo-ai/vantage-mcp",
   "version": "0.1.0",
-  "description": "MCP server for Vantage market intelligence platform",
+  "description": "MCP server for Vantage — save and query market signals from AI conversations.",
   "type": "module",
   "main": "src/index.js",
+  "bin": {
+    "vantage-mcp": "src/index.js"
+  },
+  "keywords": ["mcp", "vantage", "market-intelligence", "signals", "ai", "claude", "cavendo"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cavendo-AI/vantage",
+    "directory": "mcp-server"
+  },
+  "homepage": "https://vantage.cavendo.ai",
+  "author": "Cavendo AI",
+  "license": "MIT",
   "scripts": {
     "start": "node src/index.js"
   },
