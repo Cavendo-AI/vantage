@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.cavendo-ai/vantage",
+  "name": "io.github.Cavendo-AI/vantage",
   "title": "Vantage — Signal Tracker",
   "description": "Save and query market signals from your AI conversations.",
   "repository": {
