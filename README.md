@@ -214,4 +214,4 @@ MIT — use it however you want.
 
 ---
 
-Built by [Cavendo AI](https://cavendo.ai).
+Built by [Jonathan Arehart](https://x.com/jarehart) at [Cavendo AI](https://cavendo.ai).
