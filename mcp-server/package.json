@@ -1,7 +1,8 @@
 {
   "name": "@cavendo-ai/vantage-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for Vantage — save and query market signals from AI conversations.",
+  "mcpName": "io.github.Cavendo-AI/vantage",
   "type": "module",
   "main": "src/index.js",
   "bin": {
