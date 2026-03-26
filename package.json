@@ -1,7 +1,12 @@
 {
   "name": "vantage",
   "version": "0.1.0",
-  "description": "Market intelligence and signal monitoring system",
+  "description": "Track what you're seeing. Save signals from AI conversations and query them later.",
+  "mcpName": "io.github.cavendo-ai/vantage",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cavendo-AI/vantage"
+  },
   "type": "module",
   "engines": {
     "node": ">=20"

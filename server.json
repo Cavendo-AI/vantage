@@ -1,0 +1,49 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.cavendo-ai/vantage",
+  "title": "Vantage — Signal Tracker",
+  "description": "Track what you're seeing. Save signals from AI conversations and query them later. Capture posts, articles, quotes, and insights — then search, analyze, and share across Claude, ChatGPT, Cursor, and more.",
+  "repository": {
+    "url": "https://github.com/Cavendo-AI/vantage",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://vantage.cavendo.ai/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "API key in the format: Bearer vtg_YOUR_KEY",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@cavendo-ai/vantage-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environment_variables": [
+        {
+          "name": "VANTAGE_API_URL",
+          "description": "Vantage API URL (default: http://localhost:3020)",
+          "isRequired": false,
+          "default": "http://localhost:3020"
+        },
+        {
+          "name": "VANTAGE_API_KEY",
+          "description": "Your Vantage API key (vtg_...)",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
