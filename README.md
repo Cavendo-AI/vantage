@@ -158,6 +158,12 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ---
 
+## Integrations
+
+- OpenClaw community skill: [vantage-shared-intel](./integrations/openclaw/vantage-shared-intel/SKILL.md) — capture signals, search prior intel, and generate shared digests against the same Vantage dataset from OpenClaw.
+
+---
+
 ## REST API
 
 Most API requests require `Authorization: Bearer vtg_YOUR_KEY`.
